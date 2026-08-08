@@ -126,4 +126,7 @@ npm shortcuts: `npm run deploy`, `npm run status`, `npm run migrate`.
 - Bot API calls via `api.<method>()` return the **unwrapped** result and throw `BotApiError` on failure (`.code`, `.description`, `.parameters` — e.g. `retry_after` on a 429).
 - File bytes can't be downloaded or uploaded from a handler yet — pass `file_id`s around instead.
 - `fetch` responses are textual only, capped at 32 MB total.
+- `fetch` never throws on HTTP error statuses — a 404 resolves normally with `res.ok === false`; only real network failures (bad host, invalid URL) reject. Redirects are followed automatically (`res.url` is the final URL), and a body can be read **once** — a second `.json()`/`.text()` throws.
+- A plain insert/update/delete resolves to `[]` — there's no insert id or affected-row count. Add `.returning()` when you need the rows back (as [lib/todos.js](lib/todos.js) does).
+- Raw SQL (`db.run`/`db.all`/`db.get`) skips column mode conversion: booleans arrive as `0`/`1`, timestamps as unix seconds, json as strings. Only the table-bound query builder converts.
 - Deployed surface is exactly: `schema.js`, `.js` files in `lib/` and `handlers/`. Markdown (including every README here), dotfiles, and `.tgcloud/` stay local.

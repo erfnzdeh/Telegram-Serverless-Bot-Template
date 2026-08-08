@@ -53,6 +53,21 @@ There is nothing to return — a handler *does* things (calls `api.*`, writes to
   no-op edit with a 400 `"message is not modified"` — an error worth catching and
   ignoring, unlike most.
 
+  The full round trip of one button tap:
+
+  ```mermaid
+  sequenceDiagram
+      actor U as User
+      participant TG as Telegram
+      participant H as handlers/callback_query.js
+      U->>TG: taps "⬜️ buy milk"
+      TG->>H: CallbackQuery (data: "toggle:7")
+      H->>H: toggleTodo(chatId, 7)
+      H->>TG: answerCallbackQuery — stops the button spinner
+      H->>TG: editMessageText — the re-rendered list
+      TG-->>U: message updates in place
+  ```
+
 ## Testing a handler without Telegram
 
 `npx tgcloud run` executes a handler server-side with a payload you make up:

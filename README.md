@@ -16,6 +16,18 @@ There is no `main()`, no process, no event loop of yours. Telegram delivers each
 
 The webhook is managed *for* you and derived *from* your code: the platform builds `allowed_updates` from which handler files exist. Handling a new update type is creating a file, not configuring anything.
 
+```mermaid
+flowchart LR
+    U([User]) -->|message, button tap, …| TG[Telegram]
+    TG -->|Update| R{{"platform routes by update type"}}
+    R -->|update.message| M["handlers/message.js"]
+    R -->|update.callback_query| C["handlers/callback_query.js"]
+    M --> DB[("built-in SQLite")]
+    C --> DB
+    M -.->|"api.sendMessage(…)"| TG
+    C -.->|"api.editMessageText(…)"| TG
+```
+
 ### 2. Everything is a module, and the sandbox is not Node
 
 Your code runs in a V8 isolate with exactly three kinds of imports, all by **bare name** — never relative paths, never `.js` extensions:
@@ -46,6 +58,22 @@ Two rules that bite: **every DB call must be awaited** (a forgotten `await` retu
 ```bash
 npx tgcloud push       # deploy code; reports pending DB changes, applies none
 npx tgcloud migrate    # apply schema.js changes to the database
+```
+
+```mermaid
+flowchart LR
+    subgraph local["your folder (working copy)"]
+        H["handlers/ + lib/"]
+        S["schema.js"]
+    end
+    subgraph cloud["your bot's cloud environment"]
+        D["deployed modules"]
+        P["pending schema changes"]
+        DB[("database")]
+    end
+    H -->|"push (atomic)"| D
+    S -->|push| P
+    P -->|"migrate (explicit)"| DB
 ```
 
 Destructive changes are deliberately hard: dropping a column or table happens only by marking it `.deprecated('reason')` in schema.js — deleting the declaration drops nothing. This asymmetry (code moves fast, data moves carefully) is the same discipline production teams enforce by convention; here the platform enforces it.

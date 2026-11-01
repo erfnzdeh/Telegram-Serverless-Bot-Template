@@ -2,7 +2,7 @@
   "name": "Telegram-Serverless-Bot-Template",
   "private": true,
   "devDependencies": {
-    "@tgcloud/cli": "^0.1.2"
+    "@tgcloud/cli": "^0.2.0"
   },
   "version": "0.1.0",
   "type": "module",
